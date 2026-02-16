@@ -1,0 +1,10 @@
+*.labels
+*.obj
+*.OBJ
+*.bin
+*.tmp
+tmp/
+build/
+*.lst
+*.sld
+
