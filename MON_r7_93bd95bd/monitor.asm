@@ -1,6 +1,7 @@
 ; ======================================================
 ; Ocean-240.2
 ; Monitor r7
+; crc32: 93bd95db
 ;
 ; Disassembled by Romych 2026-02-16
 ; ======================================================
@@ -23,7 +24,7 @@
 ; Monitor Entry points
 ; ------------------------------------------------------
 
-mon_start:          JP  m_start                 ; E000
+mon_start:          JP  m_hot_start                 ; E000
 mon_hexb:           JP  m_hexb                      ; E003
 mon_con_status:		JP	m_con_status				; E006
 mon_con_in:			JP	m_con_in					; E009
@@ -47,7 +48,7 @@ mon_out_strz:		JP	m_out_strz			        ; E036
 ; ------------------------------------------------------
 ; Init system devices
 ; ------------------------------------------------------
-m_start:
+m_hot_start:
     DI
     LD   A, 10000000b                               ; DD17 all ports to out
     OUT  (SYS_DD17CTR), A                           ; VV55 Sys CTR
@@ -396,8 +397,8 @@ esc_handler_tab:
     DW   esc_print_screen                           ;1 <ESC>:
     DW   esc_draw_circle                            ;5 <ESC>;xyraxay   X,Y, Radius, aspect ratio X, aspect ratio Y
     DW   esc_paint                                  ;5 <ESC><xym
-    DW   esc_get_put_image                          ;6 <ESC>=
-    DW   esc_picture                                ;5 <ESC>>
+    DW   esc_get_put_image                          ;7 <ESC>=
+    DW   esc_picture                                ;6 <ESC>>
     DW   esc_set_beep                               ;4 <ESC>?ppdd   pp-period (word), dd - duration (word)
 
 esc_set_beep:
@@ -425,7 +426,7 @@ esc_set_cursor2:
 esc_print_screen:
     LD   A, (M_VARS.screen_mode)
     AND  00000011b
-    RET  NZ                                         ; ret for mono modes
+    RET  NZ                                         ; ret if not 0-3 mode
     LD   DE, 0x30ff
     CALL m_print_hor_line
     DEC  E
@@ -4339,8 +4340,8 @@ m_ramdisk_read:
     PUSH DE
     LD   A, D
     ; Build value to access ext RAM  (A17, A16, 32k bits)
-    AND  00000001b                                  ; Low 32K bit of memory mapper      DIFF r8
-    OR   0x2                                        ; Set A16 address line              DIFF r8
+    AND  00000111b                                  ; Low 32K, A16 bit of memory mapper DIFF r7
+    ADD  0x2                                        ; Set A17, A16 address line         DIFF r7
     OR   0x0                                        ; TODO: nothing, remove
     LD   B, A                                       ; B - value to turn on access to Ext RAM
     ; Calculate DE = address from sector number
@@ -4387,8 +4388,8 @@ m_ramdisk_write:
     PUSH HL
     PUSH DE
     LD   A, D
-    AND  0x1
-    OR   0x2                                        ; build value to access ext RAM  (A16, 32k bits)
+    AND  0x7
+    ADD  0x2                                        ; build value to access ext RAM  (A17, A16, 32k bits)
     OR   0x0                                        ; TODO: remove unused
     LD   B, A
     XOR  A
@@ -5173,7 +5174,7 @@ CODE_SIZE   EQU     LAST-0xe000
 FILL_SIZE   EQU     ROM_CHIP_SIZE-CODE_SIZE
 
 
-    ASSERT m_start       = 0xe039
+    ASSERT m_hot_start       = 0xe039
     ASSERT m_out_strz        = 0xe0d9
     ASSERT m_char_print      = 0xe130
     ASSERT m_con_out         = 0xe14a
