@@ -377,7 +377,7 @@ esc_exit:
     ; 0xe1cb
 esc_params_tab:
     DB   3, 5, 4, 3, 1, 2, 1, 1
-    DB   1, 2, 1, 5, 5, 7, 6, 4
+    DB   1, 2, 1, 5, 5, 6, 5, 4
 
 esc_handler_tab:
     DW   esc_draw_fill_rect                         ;5 <ESC>1x1y1x2y2m
