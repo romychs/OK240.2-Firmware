@@ -13,8 +13,7 @@
 	INCLUDE "ram.inc"
 	INCLUDE "bios_entries.inc"
 
-	OUTPUT mon_E000.bin
-
+	OUTPUT  mon_E000.bin
 
 	MODULE	MONITOR
 
@@ -188,8 +187,8 @@ msg_hw_mon:
 
 ; ---------------------------------------------------
 reset_m_stack:
-    LD   HL,M_VARS.stor_e
-    LD   SP,HL
+    LD   HL, M_VARS.stor_e
+    LD   SP, HL
     CALL get_cmd_letter
     INC  HL
 
@@ -197,41 +196,41 @@ reset_m_stack:
 ; Monitor entry point
 ; ---------------------------------------------------
 m_cold_start:
-    LD   HL,M_VARS.stor_e
-    LD   SP,HL
+    LD   HL, M_VARS.stor_e
+    LD   SP, HL
     DI
     CALL get_a_ref_sp
     CALL get_cmd_letter
-    LD   L,205
+    LD   L, 205
     DB   0xdd
     PUSH AF
     CP   ASCII_CR
-    JP   Z,m_cold_start
-    LD   HL,cmd_handlers
-    LD   C,11
+    JP   Z, m_cold_start
+    LD   HL, cmd_handlers
+    LD   C, 11
 
 seek_cmd:
     CP   (HL)
-    JP   Z,cmd_found
+    JP   Z, cmd_found
     INC  HL
     INC  HL
     INC  HL
     DEC  C
-    JP   NZ,seek_cmd
+    JP   NZ, seek_cmd
     JP   reset_m_stack
 
 cmd_found:
     INC  HL
     ; get cmd handler address
-    LD   A,(HL)
+    LD   A, (HL)
     INC  HL
-    LD   H,(HL)
-    LD   L,A
+    LD   H, (HL)
+    LD   L, A
     ; RET to cold_start
-    LD   DE,m_cold_start
+    LD   DE, m_cold_start
     PUSH DE
     ; Jump to cmd handler
-    LD   C,2
+    LD   C, 2
     JP   (HL)
 
 ; ---------------------------------------------------
@@ -279,7 +278,7 @@ cmd_A:
     DEC  C
     CALL get_address
     POP  DE
-    LD   HL,256
+    LD   HL, 256
     CALL m_ramdisk_write
     RET
 
@@ -290,23 +289,23 @@ cmd_D:
     DEC  C
     CALL get_address
     POP  HL
-    LD   DE,127
-    EX   DE,HL
-    ADD  HL,DE
-    EX   DE,HL
+    LD   DE, 127
+    EX   DE, HL
+    ADD  HL, DE
+    EX   DE, HL
 d_next_line:
     CALL get_a_ref_sp
     CALL out_sp_key
     CALL out_hex_word
 d_next_byte:
     CALL out_sp_key
-    LD   A,(HL)
+    LD   A, (HL)
     CALL out_hex_byte
     CALL next_hl_de
     RET  C
-    LD   A,L
+    LD   A, L
     AND  0x7
-    JP   NZ,d_next_byte
+    JP   NZ, d_next_byte
     JP   d_next_line
 
 ; ---------------------------------------------------
@@ -319,9 +318,9 @@ cmd_F:
     POP  DE
     POP  HL
 f_next_b:
-    LD   (HL),C
+    LD   (HL), C
     CALL next_hl_de
-    JP   NC,f_next_b
+    JP   NC, f_next_b
     RET
 
 ; ---------------------------------------------------
@@ -334,11 +333,11 @@ cmd_M:
     POP  DE
     POP  HL
 m_next_b:
-    LD   A,(HL)
-    LD   (BC),A
+    LD   A, (HL)
+    LD   (BC), A
     INC  BC
     CALL next_hl_de
-    JP   NC,m_next_b
+    JP   NC, m_next_b
     RET
 
 ; ---------------------------------------------------
@@ -346,42 +345,44 @@ m_next_b:
 ; ---------------------------------------------------
 cmd_L:
     CALL get_key_with_check
-    JP   NC,reset_m_stack
+    JP   NC, reset_m_stack
     CALL get_a_ref_sp
 
     ; wait for hex line start
 l_wait_colon:
     CALL m_serial_in
     CP   ':'
-    JP   NZ,l_wait_colon
+    JP   NZ, l_wait_colon
     XOR  A
     LD   D,A
     CALL read_hex_serial
-    JP   Z,l_exit
+    JP   Z, l_exit
     ; read line len and addr
-    LD   E,A
+    LD   E, A
     CALL read_hex_serial
-    LD   H,A
+    LD   H, A
     CALL read_hex_serial
-    LD   L,A
+    LD   L, A
     CALL read_hex_serial
-    LD   C,E
+    LD   C, E
+
 l_next_byte:
     CALL read_hex_serial
-    LD   (HL),A
+    LD   (HL), A
     INC  HL
     DEC  E
-    JP   NZ,l_next_byte
+    JP   NZ, l_next_byte
     CALL read_hex_serial
-    JP   NZ,reset_m_stack
+    JP   NZ, reset_m_stack
     JP   l_wait_colon
     ; read and ignore final 4 hex bytes in las
+
 l_exit:
     CALL read_hex_serial
     CALL read_hex_serial
     CALL read_hex_serial
     CALL read_hex_serial
-    JP   NZ,reset_m_stack
+    JP   NZ, reset_m_stack
     RET
 
 ; ---------------------------------------------------
@@ -391,18 +392,18 @@ cmd_S:
     CALL s_get_hex_addr
     RET  C
 s_next_byte:
-    LD   A,(HL)
+    LD   A, (HL)
     CALL out_hex_byte
     CALL get_cmd_letter
     DEC  L
     ; get new value
     CALL get_key_with_check
     RET  C
-    JP   Z,s_next_in
-    EX   DE,HL
+    JP   Z, s_next_in
+    EX   DE, HL
     CALL hex_keys_to_addr
-    EX   DE,HL
-    LD   (HL),E
+    EX   DE, HL
+    LD   (HL), E
     RET  C
 s_next_in:
     INC  HL
@@ -412,18 +413,18 @@ s_next_in:
 ; X[r] - Out and modify register value
 ; ---------------------------------------------------
 cmd_X:
-    LD   HL,registers_tab
+    LD   HL, registers_tab
     CALL get_key_with_check
-    JP   C,x_ret
-    LD   C,9
+    JP   C, x_ret
+    LD   C, 9
 x_seek_reg:
     CP   (HL)
-    JP   Z,x_reg_found
+    JP   Z, x_reg_found
     INC  HL
     INC  HL
     INC  HL
     DEC  C
-    JP   NZ,x_seek_reg
+    JP   NZ, x_seek_reg
     JP   reset_m_stack
 x_reg_found:
     CALL out_sp_key
@@ -432,21 +433,22 @@ x_reg_found:
     DEC  L
     CALL get_key_with_check
     RET  C
-    JP   Z,reset_m_stack
+    JP   Z, reset_m_stack
     PUSH BC
     ; get new reg value and store
     CALL hex_keys_to_addr
-    LD   A,L
-    LD   (DE),A
+    LD   A, L
+    LD   (DE), A
     POP  AF
     OR   A
-    JP   M,x_wreg
+    JP   M, x_wreg
     INC  DE
     LD   A,H
-    LD   (DE),A
+    LD   (DE), A
 x_wreg:
     CALL get_a_ref_sp
     RET
+
 x_ret:
     CALL get_a_ref_sp
 x_next_reg:
@@ -454,9 +456,9 @@ x_next_reg:
     OR   (HL)
     RET  M
     CP   'M'
-    CALL Z,get_a_ref_sp
+    CALL Z, get_a_ref_sp
     CALL out_sp_key
-    LD   C,(HL)
+    LD   C, (HL)
     CALL get_key_out
     CALL get_cmd_letter
     DEC  A
@@ -551,17 +553,17 @@ get_a_ref_sp:
     CALL get_cmd_letter
     DEC  C
     CALL get_cmd_letter
-    LD   A,(BC)
+    LD   A, (BC)
     RET
 
 ; ------------------------------------------------------
 ;
 ; ------------------------------------------------------
 get_cmd_letter:
-    EX   (SP),HL
-    LD   C,(HL)
+    EX   (SP), HL
+    LD   C, (HL)
     INC  HL
-    EX   (SP),HL
+    EX   (SP), HL
     JP   get_key_out
 
 ; ------------------------------------------------------
@@ -1497,15 +1499,15 @@ m2_lf:
     XOR  A
 
 .cas_l8:
-    LD   (DE),A
+    LD   (DE), A
     INC  D
     DEC  B
-    JP   NZ,.cas_l8
+    JP   NZ, .cas_l8
     INC  E
     DEC  C
-    JP   NZ,.cas_l7
-    LD   A,0x0
-    OUT  (SYS_DD17PB),A
+    JP   NZ, .cas_l7
+    LD   A, 0
+    OUT  (SYS_DD17PB), A
     RET
 
 
@@ -2676,93 +2678,93 @@ m_set_color:
 ;      C - character or sprite_no to draw
 ;---------------------------------------------------
 m_print_at_xy:
-    LD        A,(M_VARS.screen_mode)
-    AND       0x7
-    JP        NZ,esc_exit
-    LD        A,C
-    AND       0x7f
-    LD        C,A
-    CP        0x20
-    JP        M,esc_exit
-    LD        HL,M_VARS.esc_param
-    LD        A,(HL)
-    LD        E,A
-    ADD       A,0x8
-    JP        C,esc_exit
-    LD        (HL),A
-    INC       HL
-    LD        A,0xf7
-    CP        (HL)
-    JP        C,esc_exit
-    LD        D,(HL)
-    CALL      calc_px_addr
-    LD        A,L
-    SUB       0x7
-    LD        L,A
-    PUSH      HL
-    LD        A,C
-    CALL      m_get_glyph
-    POP       DE
-    LD        C,0x7
+    LD   A,(M_VARS.screen_mode)
+    AND  0x7
+    JP   NZ,esc_exit
+    LD   A,C
+    AND  0x7f
+    LD   C,A
+    CP   0x20
+    JP   M,esc_exit
+    LD   HL,M_VARS.esc_param
+    LD   A,(HL)
+    LD   E,A
+    ADD  A,0x8
+    JP   C,esc_exit
+    LD   (HL),A
+    INC  HL
+    LD   A,0xf7
+    CP   (HL)
+    JP   C,esc_exit
+    LD   D,(HL)
+    CALL calc_px_addr
+    LD   A,L
+    SUB  0x7
+    LD   L,A
+    PUSH HL
+    LD   A,C
+    CALL m_get_glyph
+    POP  DE
+    LD   C,0x7
 .l1:
-    PUSH      HL
-    LD        A,0x1
-    OUT       (SYS_DD17PB),A
-    LD        L,(HL)
-    LD        H,0x0
-    LD        A,B
-    OR        A
-    JP        Z,.l3
+    PUSH HL
+    LD   A,0x1
+    OUT  (SYS_DD17PB),A
+    LD   L,(HL)
+    LD   H,0x0
+    LD   A,B
+    OR   A
+    JP   Z,.l3
 .l2:
-    ADD       HL,HL
-    DEC       A
-    JP        NZ,.l2
+    ADD  HL,HL
+    DEC  A
+    JP   NZ,.l2
 .l3:
-    EX        DE,HL
-    PUSH      BC
-    LD        A,(M_VARS.curr_color)
+    EX   DE,HL
+    PUSH BC
+    LD   A,(M_VARS.curr_color)
     CPL
-    LD        B,A
-    LD        A,(HL)
-    XOR       B
-    OR        E
-    XOR       B
-    LD        (HL),A
-    INC       H
-    INC       H
-    LD        A,(HL)
-    XOR       B
-    OR        D
-    XOR       B
-    LD        (HL),A
-    DEC       H
-    LD        A,(M_VARS.curr_color+1)
+    LD   B,A
+    LD   A,(HL)
+    XOR  B
+    OR   E
+    XOR  B
+    LD   (HL),A
+    INC  H
+    INC  H
+    LD   A,(HL)
+    XOR  B
+    OR   D
+    XOR  B
+    LD   (HL),A
+    DEC  H
+    LD   A,(M_VARS.curr_color+1)
     CPL
-    LD        B,A
-    LD        A,(HL)
-    XOR       B
-    OR        E
-    XOR       B
-    LD        (HL),A
-    INC       H
-    INC       H
-    LD        A,(HL)
-    XOR       B
-    OR        D
-    XOR       B
-    LD        (HL),A
-    DEC       H
-    DEC       H
-    DEC       H
-    INC       L
-    EX        DE,HL
-    POP       BC
-    LD        A,0x0
-    OUT       (SYS_DD17PB),A
-    POP       HL
-    INC       HL
-    DEC       C
-    JP        NZ,.l1
+    LD   B,A
+    LD   A,(HL)
+    XOR  B
+    OR   E
+    XOR  B
+    LD   (HL),A
+    INC  H
+    INC  H
+    LD   A,(HL)
+    XOR  B
+    OR   D
+    XOR  B
+    LD   (HL),A
+    DEC  H
+    DEC  H
+    DEC  H
+    INC  L
+    EX   DE,HL
+    POP  BC
+    LD   A,0x0
+    OUT  (SYS_DD17PB),A
+    POP  HL
+    INC  HL
+    DEC  C
+    JP   NZ,.l1
     RET
 
 ; --------------------------------------------------
