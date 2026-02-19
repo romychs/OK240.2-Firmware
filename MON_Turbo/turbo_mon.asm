@@ -139,6 +139,7 @@ i_fill_video:
 	; Beep
     LD	 C, ASCII_BELL
     CALL m_con_out
+    ; check bios exists
     LD	 A, (BIOS.boot_f)
     CP	 JP_OPCODE
     JP	 Z, BIOS.boot_f
