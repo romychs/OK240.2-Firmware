@@ -1,0 +1,35 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+		{
+			"label": "make CPM (sjasmplus)",
+			"type": "shell",
+			"command": "sjasmplus",
+			"args": [
+				"--sld=cpm.sld",
+				"--sym=cpm.labels",
+                "--lstlab=sort",
+                "--lst=cpm.lst",
+				"--raw=cpm.obj",
+				"--fullpath",
+				"cpm.asm"
+			],
+			"problemMatcher": {
+				"owner": "sjasmplus",
+				"fileLocation": "autoDetect",
+				"pattern": {
+					"regexp": "^(.*)\\((\\d+)\\):\\s+(warning|error):\\s+(.*)$",
+					"file": 1,
+					"line": 2,
+					"severity": 3,
+					"message": 4
+				}
+			},
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		}
+
+	]
+}
